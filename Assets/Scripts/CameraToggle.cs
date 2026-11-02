@@ -7,7 +7,7 @@ public class CameraToggle : MonoBehaviour
     public Camera playerCamera;
     public Camera handheldCamera;
 
-    private bool isUsingHandheld = false;
+    public bool isUsingHandheld = false;
 
     void Start()
     {
