@@ -7,13 +7,23 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 5f;
     public float jumpHeight = 2f;
     public float gravity = -9.81f;
+    public Camera playerCamera;
+    public float mouseSensitivity = 50f;
 
+    private float xRotation = 0f;
+    private InputAction lookAction;
     private CharacterController controller;
     private Vector3 velocity;
 
     void Start()
     {
         controller = GetComponent<CharacterController>();
+
+        lookAction = new InputAction(type: InputActionType.Value, binding: "<Mouse>/delta");
+        lookAction.Enable();
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     void Update()
@@ -45,6 +55,16 @@ public class PlayerMovement : MonoBehaviour
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
         }
+
+        Vector2 mouseDelta = lookAction.ReadValue<Vector2>() * mouseSensitivity * Time.deltaTime;
+        float mouseX = mouseDelta.x;
+        //float mouseY = mouseDelta.y;
+
+        //xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
+
+        playerCamera.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        transform.Rotate(Vector3.up * mouseX);
 
         // Gravity
         velocity.y += gravity * Time.deltaTime;

@@ -1,9 +1,15 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
 
 public class Photography : MonoBehaviour
 {
     private CameraToggle cameraToggle;
+
+    public Camera handheldCamera;
+    public RawImage rawImage;
+    public RenderTexture renderTexture;
 
     void Start()
     {
@@ -23,5 +29,10 @@ public class Photography : MonoBehaviour
     void TakePicture()
     {
         Debug.Log("Picture Taken!");
+        //handheldCamera.targetTexture = renderTexture;
+
+        handheldCamera.Render();
+
+        //rawImage.texture = renderTexture;
     }
 }
