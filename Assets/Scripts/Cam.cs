@@ -10,11 +10,15 @@ public class Cam : MonoBehaviour
 {
     [SerializeField] private Camera rtcam;
     [SerializeField] private Transform photoContainer;
+
     private CameraToggle cameraToggle;
+    private bool showingPhotos = false;
 
     void Start()
     {
         cameraToggle = GetComponentInParent<CameraToggle>();
+
+        photoContainer.gameObject.SetActive(false);
     }
 
     private void Update()
@@ -24,7 +28,10 @@ public class Cam : MonoBehaviour
             Mouse.current != null &&
             Mouse.current.leftButton.wasPressedThisFrame)
         {
-            RenderTexture rt = new RenderTexture(1024, 1024, 16);
+            int width = 1280;
+            int height = Mathf.RoundToInt(width / rtcam.aspect);
+
+            RenderTexture rt = new RenderTexture(width, height, 16);
             rtcam.targetTexture = rt;
             rtcam.Render();
 
@@ -42,23 +49,79 @@ public class Cam : MonoBehaviour
             name = new string(name.Where(x => char.IsWhiteSpace(x) || char.IsLetterOrDigit(x)).ToArray()) + ".png";
             System.IO.File.WriteAllBytes(Application.persistentDataPath + $"/photos/{name}", bytes);
 
+            if (Keyboard.current != null &&
+            Keyboard.current.escapeKey.wasPressedThisFrame)
+            {
+            showingPhotos = false;
+            photoContainer.gameObject.SetActive(false);
+            }
+
             UpdatePhotos();
+
+            showingPhotos = true;
+            photoContainer.gameObject.SetActive(true);
         }
     }
 
-    private void UpdatePhotos()
+    
+
+private void UpdatePhotos()
     {
-        string[] photos = System.IO.Directory.GetFiles(Application.persistentDataPath + "/photos");
-        int i = 0;
-        foreach (string photo in photos)
+        // Remove previously displayed photos
+        foreach (Transform child in photoContainer)
         {
-            Texture2D texture = new Texture2D(1024, 1024);
-            RawImage img = Instantiate(new GameObject(), photoContainer).AddComponent<RawImage>();
-            texture.LoadImage(System.IO.File.ReadAllBytes(photo));
-            img.texture = texture;
-            img.GetComponent<RectTransform>().position += new Vector3(i * 100, UnityEngine.Random.Range(-10, 10));
-            img.GetComponent<RectTransform>().localEulerAngles = new Vector3(0, UnityEngine.Random.Range(-10, 10), UnityEngine.Random.Range(-10, 10));
-            i++;
+            Destroy(child.gameObject);
         }
+
+        string folder = Application.persistentDataPath + "/photos";
+
+        if (!System.IO.Directory.Exists(folder))
+        {
+            return;
+        }
+
+        // Find the most recently saved photo
+        string[] photos = System.IO.Directory.GetFiles(folder, "*.png");
+
+        if (photos.Length == 0)
+        {
+            return;
+        }
+
+        string latestPhoto = photos
+            .OrderByDescending(f => System.IO.File.GetLastWriteTimeUtc(f))
+            .First();
+
+        // Load the latest photo
+        Texture2D texture = new Texture2D(2, 2);
+        texture.LoadImage(System.IO.File.ReadAllBytes(latestPhoto));
+
+        // Create the UI image
+        GameObject photoObject = new GameObject(
+            "LatestPhoto",
+            typeof(RectTransform),
+            typeof(RawImage)
+        );
+
+        photoObject.transform.SetParent(photoContainer, false);
+
+        RawImage img = photoObject.GetComponent<RawImage>();
+        img.texture = texture;
+
+        RectTransform rect = photoObject.GetComponent<RectTransform>();
+
+        // Maintain the photograph's aspect ratio
+        float displayWidth = 500f;
+        float displayHeight = displayWidth * texture.height / texture.width;
+
+        rect.sizeDelta = new Vector2(displayWidth, displayHeight);
+
+        // Center the photo in its container
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+        rect.localRotation = Quaternion.identity;
     }
+
 }
