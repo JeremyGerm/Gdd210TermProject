@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Custom_InvertedHullOutline
-  m_Shader: {fileID: 4800000, guid: 645d16e4c0395154eb9a5711061a9007, type: 3}
+  m_Name: Custom_Advanced Outline Fill
+  m_Shader: {fileID: 4800000, guid: 6cdd088550bc7e6478ae291e0e83fabb, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -25,8 +25,11 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Thickness: 0.01
+    - _DashScale: 0
+    - _DashSpeed: 0
+    - _OutlineWidth: 2
+    - _ZTest: 0
     m_Colors:
-    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _OutlineColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
