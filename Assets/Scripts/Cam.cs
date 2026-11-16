@@ -13,23 +13,36 @@ public class Cam : MonoBehaviour
 
     private CameraToggle cameraToggle;
     private bool showingPhotos = false;
+    private Inventory inventory;
 
     void Start()
     {
         cameraToggle = GetComponentInParent<CameraToggle>();
 
         photoContainer.gameObject.SetActive(false);
+
+        inventory = GetComponentInParent<Inventory>();
     }
 
     private void Update()
-    {
+    {       
+        if (Keyboard.current != null &&
+            Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            showingPhotos = false;
+            photoContainer.gameObject.SetActive(false);
+        }
+
         if (cameraToggle != null &&
             cameraToggle.isUsingHandheld &&
             Mouse.current != null &&
             Mouse.current.leftButton.wasPressedThisFrame)
         {
             int width = 1280;
-            int height = Mathf.RoundToInt(width / rtcam.aspect);
+            int height = 720;
+
+            RenderTexture originalTarget = rtcam.targetTexture;
+            RenderTexture previous = RenderTexture.active;
 
             RenderTexture rt = new RenderTexture(width, height, 16);
             rtcam.targetTexture = rt;
@@ -49,12 +62,14 @@ public class Cam : MonoBehaviour
             name = new string(name.Where(x => char.IsWhiteSpace(x) || char.IsLetterOrDigit(x)).ToArray()) + ".png";
             System.IO.File.WriteAllBytes(Application.persistentDataPath + $"/photos/{name}", bytes);
 
-            if (Keyboard.current != null &&
-            Keyboard.current.escapeKey.wasPressedThisFrame)
-            {
-            showingPhotos = false;
-            photoContainer.gameObject.SetActive(false);
-            }
+            inventory.AddPhoto(Application.persistentDataPath + $"/photos/{name}");
+
+            rtcam.targetTexture = null;
+            RenderTexture.active = previous;
+
+            rt.Release();
+            Destroy(rt);
+            Destroy(tex);
 
             UpdatePhotos();
 
@@ -123,5 +138,4 @@ private void UpdatePhotos()
         rect.anchoredPosition = Vector2.zero;
         rect.localRotation = Quaternion.identity;
     }
-
 }
