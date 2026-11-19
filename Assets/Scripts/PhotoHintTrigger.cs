@@ -1,15 +1,29 @@
 
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PhotoHintTrigger : MonoBehaviour
 {
     public GameObject photoHintImage;
     private PhotoSpot activePhotoSpot;
-    [SerializeReference] private float dotThreshold = 0.2f;
+    [SerializeField] private float dotThreshold = 0.2f;
     [SerializeField] private Transform cam;
+    [SerializeField] private CameraToggle cameraToggle;
 
     private void Update()
     {
+        if (activePhotoSpot != null && cameraToggle.handheldCamera.isActiveAndEnabled)
+        {
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                float dot = Vector3.Dot(cam.forward, (activePhotoSpot.Target - transform.position).normalized);
+                if (dot >= (1f - dotThreshold))
+                {
+                    Debug.Log("Photo Taken!");
+                }
+            }
+        }
+
         Collider[] hits = Physics.OverlapSphere(transform.position, 1f);
         for(int i = 0; i < hits.Length; i++)
         {
@@ -26,6 +40,8 @@ public class PhotoHintTrigger : MonoBehaviour
             activePhotoSpot = null;
             photoHintImage.SetActive(false);
         }
+
+       
     }
 
     private void OnDrawGizmos()
@@ -33,7 +49,7 @@ public class PhotoHintTrigger : MonoBehaviour
         if (activePhotoSpot != null)
         {
             float dot = Vector3.Dot(cam.forward, (activePhotoSpot.Target - transform.position).normalized);
-            Debug.Log(dot);
+            //Debug.Log(dot);
             if(dot >= (1f - dotThreshold))
             {
                 Gizmos.color = Color.green;
